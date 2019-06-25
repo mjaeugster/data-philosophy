@@ -1,0 +1,71 @@
+---
+title: Data Philosophy
+subtitle: A series on learning and dissecting fundamental topics 
+  relevant to data intelligence
+output: html_document
+---
+
+I work in a *Data Analytics & Insights* unit, in my Meetup profile 
+I state that *"I try to turn data into insights"* and in my working
+day I often shout out that *"we need to create (actionable) insights and
+be data-driven"* -- but what does this actually mean? 
+
+This series of blog entries is an attempt to define the very basics of
+data science, statistics, and machine learning. They are just the basics,
+but in fact, they create the foundations of a data-driven culture.
+
+The blog series is also my way to learn and dissect certain topics,
+it shows my knowledge to a certain point of time. Things might be wrong,
+opinions might change.
+
+Topics:
+
+1. Data science tasks
+    * https://arxiv.org/abs/1804.10846
+    * https://www.d.umn.edu/~kgilbert/ened5560-1/The%2520Research%2520Question-2015-Leek-1314-5.pdf
+    * Business people defined: Descriptive, Predictive, and Prescriptive Analytics and describe the data matureness of a company
+2. Data generation: Observational vs. experimental studies
+    * Surveys, A/B tests
+    * http://www.unofficialgoogledatascience.com/2017/10/unintentional-data.html
+
+3. Data-driven decisions, decision theory
+    * Decision Support (field)
+        * see related work https://arxiv.org/abs/1703.10651)
+    * Not being data-driven when you think you are. https://www.gcppodcast.com/post/episode-128-decision-intelligence-with-cassie-kozyrkov/  (Cassie Kozyrkov, Google)
+    * https://hackernoon.com/rethinking-fast-and-slow-in-data-science-b2ce18d5b054
+3. Practical vs. statistical significance
+    * https://www.nature.com/news/scientific-method-statistical-errors-1.14700
+    * https://en.wikipedia.org/wiki/Clinical_significance
+3. Types of Bias
+    * Quantification Bias: the uncosciouns believe of valuing the measureble over the immeasurable
+        * Wang: The human insights missing from big data (TED talk, 08:15)
+    * Selection Bias
+    * Confirmation Bias
+3. Causality 101
+    * Use the example explained in the intro from Pearl's latest book
+    * counterfactuals?
+    * http://www.cs.cornell.edu/courses/cs7792/2016fa/
+    * http://www.pnas.org/content/113/27/7310
+3. Killing your future training data
+    * http://www.pnas.org/content/113/27/7310
+        * example which explains this, I guess
+    * http://www.unofficialgoogledatascience.com/2017/01/causality-in-machine-learning.html
+    * https://arxiv.org/abs/1703.10651
+        * "when training data is affected by actions, supervised learning
+          algorithms capture relationships caused by action policies, 
+          and these relationships do not generalize when the policy changes."
+3. What is (actionable) *insight*?
+    * https://en.wikipedia.org/wiki/Insight
+    * https://en.wikipedia.org/wiki/DIKW_pyramid
+    * https://en.wikipedia.org/wiki/Prescriptive_analytics
+    * https://www.forbes.com/sites/brentdykes/2016/04/26/actionable-insights-the-missing-link-between-data-and-business-value/#1bd4441551e5
+3. From predictive to prescriptive
+    * https://en.wikipedia.org/wiki/Prescriptive_analytics
+
+Ideas for another blog series on data science inside a company:
+
+1. Purpose of data science inside the company?
+    * Getting insights or developing a product
+2. Data analytics team
+3. Data products
+  

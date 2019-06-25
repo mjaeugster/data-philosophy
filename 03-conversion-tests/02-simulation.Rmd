@@ -1,0 +1,165 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Baseline conversion rate:
+```{r}
+cr_a <- 0.1
+```
+
+We expect an uplift in % of
+```{r}
+up <- 20
+```
+and therefore a conversion rate of:
+```{r}
+cr_b <- cr_a + cr_a * up / 100
+cr_b
+```
+
+Signifance and power are defined as:
+```{r}
+sig <- 0.05
+power <- 0.8
+```
+
+With this definition, the required number of observations per group is:
+```{r}
+n_group <- ceiling(power.prop.test(p1 = cr_a, p2 = cr_b, sig.level = sig, power = power)$n)
+n_group
+```
+
+If we run the test with the required number of observations per group and there
+really is an uplift of 30% we get a significant result with
+* with the probability of rejecting the null hypothesis, given that the null hypothesis is true
+
+
+In testing of hypothesis studies, the objective of sample size calculation is to achieve a desired power for detecting a clinically or scientifically meaningful difference at a prefixed level of significance.
+
+
+## Simulating a conversion test
+
+```{r}
+test <- function(a, b, n) { 
+  prop.test(c(a, b), c(n, n), conf.level = 1 - sig)$p.value
+}
+
+run <- function(b, n, cr_a, cr_b) {
+  n <- ceiling(n / b)
+  ns <- seq(b, by = b, length.out = n)
+  sc_a <- cumsum(rbinom(n, b, cr_a))
+  sc_b <- cumsum(rbinom(n, b, cr_b))
+  
+  ps <- mapply(test, sc_a, sc_b, ns)
+  
+  tibble(n = ns, ca = sc_a, cb = sc_b, p = ps)
+}
+```
+
+Batch size and total number of observations per group:
+```{r}
+b <- 100
+n <- n_group * 3
+```
+
+Difference between both versions:
+```{r}
+set.seed(1213)
+e1 <- run(b, n, cr_a, cr_b)
+
+ggplot(e1, aes(n, p)) + 
+  geom_line() + 
+  geom_hline(yintercept = sig, colour = "red", linetype = "dashed") +
+  geom_vline(xintercept = n_group, colour = "red", linetype = "dashed") +
+  ylim(c(0, 1))
+```
+
+No difference between both versions:
+```{r}
+r <- function(i) {
+  set.seed(1000 + i)
+  e <- run(b, n, cr_a, cr_a)
+  
+  c(seed = 1000+i, cnt = sum(e$p[1:floor(n_group / s)] < sig))
+}
+
+e2 <- lapply(1:1000, r)
+e2 <- do.call(rbind, e2)
+
+head(e2[order(e2[, "cnt"], decreasing = TRUE), ])
+```
+
+```{r}
+set.seed(1563)
+e <- run(b, n, cr_a, cr_a)
+  
+ggplot(e, aes(n, p)) + 
+  geom_line() + 
+  geom_hline(yintercept = sig, colour = "red", linetype = "dashed") +
+  geom_vline(xintercept = n_group, colour = "red", linetype = "dashed") +
+  ylim(c(0, 1))
+```
+
+
+
+## Simulation
+
+```{r}
+
+```
+
+
+## Power simulation
+
+The power of any statistical test is the probability that it will reject a false null hypothesis; 
+i.e., the probability of detecting an effect, given that the effect is really there.
+
+```{r}
+l <- replicate(1000, run(cr_a, cr_b))
+
+matplot(l, type = "l", col = rgb(0, 0, 0, 0.2), lty = 1)
+
+abline(h = 0.05, col = 2)
+abline(v = ceiling(n_group/100), col = 2)
+
+s <- ceiling(n_group/100)
+e <- ceiling(n_group * 3 / 100)
+
+prop.table(table(colSums(l[s:e, , drop = FALSE] > 0.05) > 0)) * 100
+```
+
+
+## Significance
+
+The significance of a statistical test is the probability of rejecting a true null hypothesis.
+
+```{r}
+l <- replicate(1000, run(cr_a, cr_a))
+
+matplot(l, type = "l", col = rgb(0, 0, 0, 0.2), lty = 1)
+
+abline(h = 0.05, col = 2)
+abline(v = ceiling(n_group/100), col = 2)
+```
+
+```{r}
+s <- ceiling(n_group/100)
+e <- ceiling(n_group * 3 / 100)
+
+prop.table(table(colSums(l[s, , drop = FALSE] < 0.05) > 0)) * 100
+prop.table(table(colSums(l[s:e, , drop = FALSE] < 0.05) > 0)) * 100
+prop.table(table(colSums(l[, , drop = FALSE] < 0.05) > 0)) * 100
+```
+
+
+
+## Material:
+
+- Optimizely is moving away from traditional, fixed horizon hypothesis testing to sequential
+testing and replacing Type I error control with false discovery rate (FDR) control
+- http://pages.optimizely.com/rs/optimizely/images/stats_engine_technical_paper.pdf
