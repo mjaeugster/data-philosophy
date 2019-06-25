@@ -5,6 +5,11 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library("ggplot2")
+library("tibble")
+library("purrr")
+library("dplyr")
 ```
 
 Baseline conversion rate:
@@ -85,7 +90,7 @@ r <- function(i) {
   set.seed(1000 + i)
   e <- run(b, n, cr_a, cr_a)
   
-  c(seed = 1000+i, cnt = sum(e$p[1:floor(n_group / s)] < sig))
+  c(seed = 1000+i, cnt = sum(e$p[1:floor(n_group / b)] < sig))
 }
 
 e2 <- lapply(1:1000, r)
@@ -105,12 +110,17 @@ ggplot(e, aes(n, p)) +
   ylim(c(0, 1))
 ```
 
+This is an example that you 1) should not stop early and 2) do not talk 
+about "it is 90% significant".
 
-
-## Simulation
+Why is this happening?
 
 ```{r}
-
+e %>%
+  gather(ca, cb, key = "version", value = "count") %>%
+  ggplot(aes(n, count, colour = version)) +
+  geom_line() +
+  geom_vline(xintercept = n_group, colour = "red", linetype = "dashed")
 ```
 
 
@@ -120,17 +130,21 @@ The power of any statistical test is the probability that it will reject a false
 i.e., the probability of detecting an effect, given that the effect is really there.
 
 ```{r}
-l <- replicate(1000, run(cr_a, cr_b))
+l1 <- rerun(100, run(b, n, cr_a, cr_b))
+l1 <- bind_rows(l1, .id = "run")
 
-matplot(l, type = "l", col = rgb(0, 0, 0, 0.2), lty = 1)
+ggplot(l1, aes(n, p, group = run)) +
+  geom_line(colour = rgb(0, 0, 0, 0.2)) + 
+  geom_vline(xintercept = n_group, colour = "red", linetype = "dashed") +
+  geom_hline(yintercept = sig, colour = "red", linetype = "dashed")
 
-abline(h = 0.05, col = 2)
-abline(v = ceiling(n_group/100), col = 2)
-
-s <- ceiling(n_group/100)
-e <- ceiling(n_group * 3 / 100)
-
-prop.table(table(colSums(l[s:e, , drop = FALSE] > 0.05) > 0)) * 100
+l1 %>%
+  filter(n > n_group) %>%
+  group_by(run) %>%
+  summarize(a = any(p > 0.05)) %>%
+  select(a) %>%
+  table() %>%
+  prop.table() * 100
 ```
 
 
@@ -139,12 +153,23 @@ prop.table(table(colSums(l[s:e, , drop = FALSE] > 0.05) > 0)) * 100
 The significance of a statistical test is the probability of rejecting a true null hypothesis.
 
 ```{r}
-l <- replicate(1000, run(cr_a, cr_a))
+l2 <- rerun(100, run(b, n, cr_a, cr_a))
+l2 <- bind_rows(l2, .id = "run")
 
-matplot(l, type = "l", col = rgb(0, 0, 0, 0.2), lty = 1)
+ggplot(l2, aes(n, p, group = run)) +
+  geom_line(colour = rgb(0, 0, 0, 0.2)) + 
+  geom_vline(xintercept = n_group, colour = "red", linetype = "dashed") +
+  geom_hline(yintercept = sig, colour = "red", linetype = "dashed")
 
-abline(h = 0.05, col = 2)
-abline(v = ceiling(n_group/100), col = 2)
+
+l1 %>%
+  filter(n == n_group) %>%
+  group_by(run) %>%
+  summarize(a = any(p < 0.05)) %>%
+  select(a) %>%
+  table() %>%
+  prop.table() * 100
+
 ```
 
 ```{r}
