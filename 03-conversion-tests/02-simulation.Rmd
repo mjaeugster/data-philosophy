@@ -19,7 +19,7 @@ cr_a <- 0.1
 
 We expect an uplift in % of
 ```{r}
-up <- 20
+up <- 30
 ```
 and therefore a conversion rate of:
 ```{r}
@@ -50,8 +50,8 @@ In testing of hypothesis studies, the objective of sample size calculation is to
 ## Simulating a conversion test
 
 ```{r}
-test <- function(a, b, n) { 
-  prop.test(c(a, b), c(n, n), conf.level = 1 - sig)$p.value
+test <- function(ca, cb, cn) { 
+  prop.test(c(ca, cb), c(cn, cn), conf.level = 1 - sig)$p.value
 }
 
 run <- function(b, n, cr_a, cr_b) {
@@ -130,7 +130,21 @@ The power of any statistical test is the probability that it will reject a false
 i.e., the probability of detecting an effect, given that the effect is really there.
 
 ```{r}
-l1 <- rerun(100, run(b, n, cr_a, cr_b))
+l1 <- rerun(10, run(b, n, cr_a, cr_b))
+l1 <- do.call(rbind, l1)
+
+matplot(t(l1), type = "l", col = rgb(0, 0, 0, 0.2), lty = 1)
+abline(h = sig, col = 2, lty = 2)
+abline(v = ceiling(n_group/b), col = 2, lty = 2)
+
+s <- ceiling(n_group/b)
+
+prop.table(table(rowSums(l1[, s, drop = FALSE] > 0.05) > 0))
+```
+
+
+```{r}
+l1 <- rerun(10, run(b, n, cr_a, cr_b))
 l1 <- bind_rows(l1, .id = "run")
 
 ggplot(l1, aes(n, p, group = run)) +
@@ -148,9 +162,34 @@ l1 %>%
 ```
 
 
+```{r}
+print(filter(l1, run == "1"), n=Inf)
+```
+
+```{r}
+a <- 
+filter(l1, n == 1800) %>%
+  rowwise() %>%
+  do(power = power.prop.test(n = .$n, p1 = .$ca/.$n, p2 = .$cb/.$n, sig.level = 0.05)$power)
+```
+
+
 ## Significance
 
 The significance of a statistical test is the probability of rejecting a true null hypothesis.
+
+```{r}
+l1 <- rerun(10000, run(b, n, cr_a, cr_a))
+l1 <- do.call(rbind, l1)
+
+matplot(t(l1), type = "l", col = rgb(0, 0, 0, 0.2), lty = 1)
+abline(h = sig, col = 2, lty = 2)
+abline(v = ceiling(n_group/b), col = 2, lty = 2)
+
+s <- ceiling(n_group/b)
+
+prop.table(table(rowSums(l1[, s, drop = FALSE] < 0.05) > 0))
+```
 
 ```{r}
 l2 <- rerun(100, run(b, n, cr_a, cr_a))
